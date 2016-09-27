@@ -15,7 +15,7 @@
     "start": "node lib/bot.js"
   },
   "dependencies": {
-    "telegram-node-bot": "^3.0.12"
+    "telegram-node-bot": "^2.1.2"
   },
   "devDependencies": {
   },
