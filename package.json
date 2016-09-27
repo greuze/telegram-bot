@@ -1,0 +1,23 @@
+{
+  "name": "telegram-bot",
+  "description": "Simple implementation of a Telegram bot",
+  "author": "Iván López <ils@tid.es>",
+  "keywords": [
+    "telegram",
+    "bot"
+  ],
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/greuze/telegram-bot.git"
+  },
+  "scripts": {
+    "start": "node lib/bot.js"
+  },
+  "dependencies": {
+    "telegram-node-bot": "^3.0.12"
+  },
+  "devDependencies": {
+  },
+  "license": "MIT"
+}
