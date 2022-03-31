@@ -15,9 +15,9 @@
     "start": "node lib/bot.js"
   },
   "dependencies": {
-    "telegram-node-bot": "^2.1.2"
+    "dotenv": "^16.0.0",
+    "telegraf": "^4.7.0"
   },
-  "devDependencies": {
-  },
+  "devDependencies": {},
   "license": "MIT"
 }
