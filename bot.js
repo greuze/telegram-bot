@@ -37,7 +37,7 @@ const cluesMidleware = ctx => {
                     // Concatenates clue or clues available for that day
                     guess += clue.join('\n\n');
                     // If there is a guess for this user and this day, concatenate at the end
-                    if (guesses[message.from.username]?.[days[i]]) {
+                    if (guesses[message.from.username] && guesses[message.from.username][days[i]]) {
                         // Hint with length of word(s)
                         const guessLength = getGuessLength(guesses[message.from.username][days[i]]);
                         guess += `\n\n_${guesses[message.from.username][days[i]]} ${guessLength}_`;
@@ -63,7 +63,7 @@ bot.on('text', ctx => {
     let replies;
     if (reply) {
         // Get the day of the week, removing markdown if exist
-        const day = reply.text?.split('\n')[0]?.replace(/\*/g, '');
+        const day = reply.text.split('\n')[0].replace(/\*/g, '');
         if (day && days.includes(day)) {
             // Remove leading and trailing spaces, just in case
             message.text = message.text.trim();
