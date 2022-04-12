@@ -26,25 +26,30 @@ bot.help(ctx => ctx.reply('Escribe /clues o /pistas para ver las pistas de esta 
 
 const cluesMidleware = ctx => {
     const message = ctx.update.message;
-    getClues(process.env.TWITTER_BEARER_TOKEN, '@depeaparne')
+    // Optional pastWeeks parameter will be an integer with the number of weeks to substract or 0 for current week
+    // (accepts positive and negative numbers with the same meaning)
+    const pastWeeks = Math.abs(parseInt(message.text.split(' ')[1]) || 0);
+    getClues(process.env.TWITTER_BEARER_TOKEN, '@depeaparne', pastWeeks)
         .then(async clueList => {
             for (let i = 0; i < clueList.length; i++) {
-                const clue = clueList[i];
+                const currentClue = clueList[i];
                 // If there is info for this day, send the clue or clues for that day, and the guess is exist
-                if (clue) {
+                if (currentClue) {
+                    const indexDay = `${days[i]} ${currentClue.date}`
                     // Start with a bold day of the week 
-                    let guess = '*' + days[i] + '*\n\n';
+                    let clueMessage = `*${indexDay}*\n\n`;
+
                     // Concatenates clue or clues available for that day
-                    guess += clue.join('\n\n');
+                    clueMessage += currentClue.clues.join('\n\n');
                     // If there is a guess for this user and this day, concatenate at the end
-                    if (guesses[message.from.username] && guesses[message.from.username][days[i]]) {
+                    if (guesses[message.from.username] && guesses[message.from.username][indexDay]) {
                         // Hint with length of word(s)
-                        const guessLength = getGuessLength(guesses[message.from.username][days[i]]);
-                        guess += `\n\n_${guesses[message.from.username][days[i]]} ${guessLength}_`;
+                        const guessLength = getGuessLength(guesses[message.from.username][indexDay]);
+                        clueMessage += `\n\n_${guesses[message.from.username][indexDay]} ${guessLength}_`;
                     }
                     // TODO: Should concatenate here if other users have already the answer?
 
-                    await ctx.replyWithMarkdown(guess);
+                    await ctx.replyWithMarkdown(clueMessage);
                 }
             }
         }).catch(e => {
@@ -64,7 +69,8 @@ bot.on('text', ctx => {
     if (reply) {
         // Get the day of the week, removing markdown if exist
         const day = reply.text.split('\n')[0].replace(/\*/g, '');
-        if (day && days.includes(day)) {
+        const dayOfTheWeek = day.split(' ')[0];
+        if (dayOfTheWeek && days.includes(dayOfTheWeek)) {
             // Remove leading and trailing spaces, just in case
             message.text = message.text.trim();
             // Get older guesses from the user, or creates an empty object to put into
@@ -108,6 +114,12 @@ function getRandomElement(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
 }
 
+/**
+ * Print user friendly length of words
+ *
+ * @param {string} guess User guess answer to a clue
+ * @returns User friendly length of word or words
+ */
 function getGuessLength(guess) {
     const guessWords = guess.split(' ');
     let length;
@@ -115,7 +127,7 @@ function getGuessLength(guess) {
         // For example, "3 palabras de 3, 5 y 4 letras"
         length = `${guessWords.length} palabras de ${guessWords[0].length}`;
         for (let i = 1; i < guessWords.length - 1; i++) {
-            length += `${guessWords[i].length}, `;
+            length += `, ${guessWords[i].length}`;
         }
         length += ` y ${guessWords[guessWords.length - 1].length} letras`;
     } else {
