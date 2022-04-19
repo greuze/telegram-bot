@@ -15,3 +15,8 @@ or
 ```
 node bot.js
 ```
+
+## Thing to do
+
+- Recommend common options with inline buttons
+- Enrich reply text with other users guesses

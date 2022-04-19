@@ -1,5 +1,6 @@
 const { Telegraf } = require('telegraf');
 const dotenv = require('dotenv');
+const fs = require('fs');
 const { getClues } = require('./twitter');
 
 // Load env vars
@@ -8,8 +9,11 @@ dotenv.config();
 // There are no clues on Sunday or Saturday
 const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
+// File that contains guesses from all users
+const guessesFile = 'allguesses.json';
+
 // Store here the guesses from users
-const guesses = {};
+const guesses = initializeGuessesFile();
 
 // Creates main bot object, that will contain the handlers, etc.
 const bot = new Telegraf(process.env.TELEGRAM_TOKEN);
@@ -21,8 +25,13 @@ bot.start(ctx => {
         `Bueno, da igual, encantado de conocerte 👋🏼👋🏼👋🏼`);
 });
 
-bot.help(ctx => ctx.reply('Escribe /clues o /pistas para ver las pistas de esta semana.\n' +
-    'Cuando sepas alguna, contesta a ese mensaje con la respuesta.'));
+const helpMiddleware = ctx => ctx.reply('Escribe /pistas o /clues para ver las pistas de esta semana.\n\n' +
+    'Cuando sepas alguna, contesta a ese mensaje con la respuesta y saldrá las siguientes veces que consultes pistas.\n\n' +
+    'Si quieres ver las pistas y tus respuestas de una semana anterior, puedes escribir el número de semanas que han pasado después de /pistas o /clues, por ejemplo "/pistas 1" para la semana pasada\n\n' +
+    'Suerte 🍀');
+
+bot.help(helpMiddleware);
+bot.command('ayuda', helpMiddleware);
 
 const cluesMidleware = ctx => {
     const message = ctx.update.message;
@@ -77,6 +86,8 @@ bot.on('text', ctx => {
             const userGuesses = guesses[message.from.username] || {};
             userGuesses[day] = message.text;
             guesses[message.from.username] = userGuesses;
+            // Write guesses to a file to reload on resets
+            fs.writeFileSync(guessesFile, JSON.stringify(guesses));
             // Hint with length of word(s)
             const guessLength = getGuessLength(message.text);
             replies = [
@@ -109,6 +120,16 @@ bot.on('text', ctx => {
 });
 
 bot.launch();
+
+function initializeGuessesFile() {
+    try {
+        let rawdata = fs.readFileSync(guessesFile);
+        return JSON.parse(rawdata);
+    } catch (error) {
+        console.log(`Guesses file ${guessesFile} does not exist, initializing to empty`)
+        return {};
+    }
+}
 
 function getRandomElement(arr) {
     return arr[Math.floor(Math.random() * arr.length)];

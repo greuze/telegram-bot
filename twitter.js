@@ -1,6 +1,8 @@
 const { TwitterApi } = require('twitter-api-v2');
 
-const cluePattern = /Pista\s?\d\..+$/i;
+// Detect "Pista" plus optional space, optional dot and any character in the same line that is not ")", to look for trailing "letras)",
+// ignoring case
+const cluePattern = /Pista\s?\d\.?[^\)]+\)/i;
 
 module.exports.getClues = async function(twitterBearerToken, accountName, pastWeeks) {
     const now = new Date();
@@ -27,9 +29,10 @@ module.exports.getClues = async function(twitterBearerToken, accountName, pastWe
             // Only handle tweets with clues
             const cluesMatch = cluePattern.exec(tweet.full_text);
             if (cluesMatch) {
-                const dayResult = result[tweetDate.getDay()] || { clues: [], date: new Intl.DateTimeFormat('es-ES').format(tweetDate)};
+                const formattedDate = `${tweetDate.getDate()}/${tweetDate.getMonth() + 1}/${tweetDate.getFullYear()}`;
+                const dayResult = result[tweetDate.getDay()] || { clues: [], date: formattedDate};
                 // Insert matching part of the regexp (the clue itself) in the first position of the array
-                dayResult.clues.unshift(cluesMatch[0].replace(/\s?https?:\/\/[\w.\/]+$/, ''));
+                dayResult.clues.unshift(cluesMatch[0]);
                 // Sunday keeps being 0, as it doesn't matter (no clues on weekend)
                 result[tweetDate.getDay()] = dayResult;
             }
