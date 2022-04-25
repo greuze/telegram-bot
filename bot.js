@@ -51,10 +51,11 @@ const cluesMidleware = ctx => {
                     // Concatenates clue or clues available for that day
                     clueMessage += currentClue.clues.join('\n\n');
                     // If there is a guess for this user and this day, concatenate at the end
-                    if (guesses[message.from.username] && guesses[message.from.username][indexDay]) {
+                    const userIndex = message.from.id;
+                    if (guesses[userIndex] && guesses[userIndex][indexDay]) {
                         // Hint with length of word(s)
-                        const guessLength = getGuessLength(guesses[message.from.username][indexDay]);
-                        clueMessage += `\n\n_${guesses[message.from.username][indexDay]} ${guessLength}_`;
+                        const guessLength = getGuessLength(guesses[userIndex][indexDay]);
+                        clueMessage += `\n\n_${guesses[userIndex][indexDay]} ${guessLength}_`;
                     }
                     // TODO: Should concatenate here if other users have already the answer?
 
@@ -83,9 +84,10 @@ bot.on('text', ctx => {
             // Remove leading and trailing spaces, just in case
             message.text = message.text.trim();
             // Get older guesses from the user, or creates an empty object to put into
-            const userGuesses = guesses[message.from.username] || {};
+            const userIndex = message.from.id;
+            const userGuesses = guesses[userIndex] || {};
             userGuesses[day] = message.text;
-            guesses[message.from.username] = userGuesses;
+            guesses[userIndex] = userGuesses;
             // Write guesses to a file to reload on resets
             fs.writeFileSync(guessesFile, JSON.stringify(guesses));
             // Hint with length of word(s)
